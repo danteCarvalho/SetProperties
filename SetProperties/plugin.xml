@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.4"?>
+<plugin>
+
+   <extension
+         point="org.eclipse.ui.commands">
+      <category
+            id="SetProperties.commands.category"
+            name="Set Properties">
+      </category>
+      <command
+            categoryId="SetProperties.commands.category"
+            name="Set Properties"
+            id="SetProperties.commands.sampleCommand">
+      </command>
+   </extension>
+   <extension
+         point="org.eclipse.ui.handlers">
+      <handler
+            class="setproperties.handlers.SampleHandler"
+            commandId="SetProperties.commands.sampleCommand">
+      </handler>
+   </extension>
+   <extension
+         point="org.eclipse.ui.bindings">
+      <key
+            commandId="SetProperties.commands.sampleCommand"
+            schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
+            contextId="org.eclipse.ui.contexts.window"
+            sequence="M1+7">
+      </key>
+   </extension>
+
+</plugin>

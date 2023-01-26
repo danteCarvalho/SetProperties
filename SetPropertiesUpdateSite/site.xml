@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<site>
+   <description name="SetPropertiesUpdateSite">
+      SetPropertiesUpdateSite
+   </description>
+   <feature url="features/SetPropertiesFeature_1.0.0.202301260310.jar" id="SetPropertiesFeature" version="1.0.0.202301260310">
+      <category name="SetProperties"/>
+   </feature>
+   <category-def name="SetProperties" label="SetProperties">
+      <description>
+         SetProperties
+      </description>
+   </category-def>
+</site>
