@@ -1,5 +1,7 @@
 package setproperties.handlers;
+
 import java.util.Map;
+
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.core.commands.AbstractHandler;
 import org.eclipse.core.commands.ExecutionEvent;
@@ -15,16 +17,10 @@ import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.dom.AST;
 import org.eclipse.jdt.core.dom.ASTNode;
 import org.eclipse.jdt.core.dom.ASTParser;
-import org.eclipse.jdt.core.dom.Assignment;
-import org.eclipse.jdt.core.dom.ClassInstanceCreation;
 import org.eclipse.jdt.core.dom.CompilationUnit;
 import org.eclipse.jdt.core.dom.Expression;
 import org.eclipse.jdt.core.dom.ITypeBinding;
-import org.eclipse.jdt.core.dom.MethodInvocation;
 import org.eclipse.jdt.core.dom.NodeFinder;
-import org.eclipse.jdt.core.dom.Type;
-import org.eclipse.jdt.core.dom.VariableDeclarationFragment;
-import org.eclipse.jdt.core.dom.VariableDeclarationStatement;
 import org.eclipse.jdt.ui.JavaUI;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.IRegion;
@@ -36,6 +32,7 @@ import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.handlers.HandlerUtil;
 import org.eclipse.ui.part.FileEditorInput;
 import org.eclipse.ui.texteditor.ITextEditor;
+
 public class SampleHandler extends AbstractHandler {
 
 	@Override
@@ -65,36 +62,9 @@ public class SampleHandler extends AbstractHandler {
 				parser.setSource(iCompilationUnit);
 				CompilationUnit compilationUnit = (CompilationUnit) parser.createAST(null);
 				NodeFinder finder = new NodeFinder(compilationUnit, iTextSelection.getOffset(), 0);
-				ASTNode simpleName = finder.getCoveringNode();
-				ASTNode parent = simpleName.getParent();
-				ITypeBinding iTypeBinding = null;
-				if (parent instanceof VariableDeclarationFragment) {
-					VariableDeclarationFragment variableDeclarationFragment = (VariableDeclarationFragment) parent;
-					VariableDeclarationStatement variableDeclarationStatement = (VariableDeclarationStatement) variableDeclarationFragment.getParent();
-					Type type = variableDeclarationStatement.getType();
-					iTypeBinding = type.resolveBinding();
-				}
-				else if (parent instanceof Assignment) {
-					Assignment assignment = (Assignment) parent;
-					Expression rightHandSide = assignment.getRightHandSide();
-					if (rightHandSide instanceof ClassInstanceCreation) {
-						ClassInstanceCreation classInstanceCreation = (ClassInstanceCreation) rightHandSide;
-						Type type = classInstanceCreation.getType();
-						iTypeBinding = type.resolveBinding();
-					}
-					else if (rightHandSide instanceof MethodInvocation) {
-						MethodInvocation methodInvocation = (MethodInvocation) rightHandSide;
-						iTypeBinding = methodInvocation.resolveTypeBinding();
-					}
-				}
-				else if (parent instanceof VariableDeclarationStatement) {
-					VariableDeclarationStatement variableDeclarationStatement = (VariableDeclarationStatement) parent;
-					Type type = variableDeclarationStatement.getType();
-					iTypeBinding = type.resolveBinding();
-				}
-				if (iTypeBinding == null) {
-					return null;
-				}
+				ASTNode astNode = finder.getCoveringNode();
+				Expression expression = (Expression) astNode;
+				ITypeBinding iTypeBinding = expression.resolveTypeBinding();
 				IType findType = javaProject.findType(iTypeBinding.getQualifiedName());
 				IField[] fields = findType.getFields();
 				StringBuilder textos = new StringBuilder();
@@ -107,8 +77,7 @@ public class SampleHandler extends AbstractHandler {
 				IRegion proximaLinha = document.getLineInformation(line + 1);
 				document.replace(proximaLinha.getOffset(), 0, textos.toString());
 			}
-		}
-		catch (Exception e) {
+		} catch (Exception e) {
 			System.out.println(e.getMessage());
 		}
 		return null;

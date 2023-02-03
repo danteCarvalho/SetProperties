@@ -2,7 +2,7 @@
 <feature
       id="SetPropertiesFeature"
       label="SetPropertiesFeature"
-      version="1.0.0.qualifier">
+      version="1.1.0.qualifier">
 
    <description url="http://www.example.com/description">
       This plugin can set all the properties of a class for you. 
@@ -14,7 +14,7 @@ You just need to select a variable and press ctrl + 7.
    </copyright>
 
    <license url="http://www.example.com/license">
-      No license
+     MIT
    </license>
 
    <plugin

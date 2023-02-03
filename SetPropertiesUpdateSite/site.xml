@@ -3,7 +3,7 @@
    <description name="SetPropertiesUpdateSite">
       SetPropertiesUpdateSite
    </description>
-   <feature url="features/SetPropertiesFeature_1.0.0.202301260310.jar" id="SetPropertiesFeature" version="1.0.0.202301260310">
+   <feature url="features/SetPropertiesFeature_1.1.0.202302031619.jar" id="SetPropertiesFeature" version="1.1.0.202302031619">
       <category name="SetProperties"/>
    </feature>
    <category-def name="SetProperties" label="SetProperties">
