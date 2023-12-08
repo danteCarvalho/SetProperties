@@ -27,7 +27,7 @@
             commandId="SetProperties.commands.sampleCommand"
             schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
             contextId="org.eclipse.ui.contexts.window"
-            sequence="M1+7">
+            sequence="M1+Shift+7">
       </key>
    </extension>
 

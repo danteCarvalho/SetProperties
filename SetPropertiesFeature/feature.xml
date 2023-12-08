@@ -2,11 +2,73 @@
 <feature
       id="SetPropertiesFeature"
       label="SetPropertiesFeature"
-      version="1.1.0.qualifier">
+      version="1.2.0">
 
    <description url="http://www.example.com/description">
       This plugin can set all the properties of a class for you. 
-You just need to select a variable and press ctrl + 7.
+You just need to select a variable and press Ctrl + Shift + 7.
+Example:
+public class Foo{
+	byte byte1;
+	Byte byte2;
+	short short1;
+	Short short2;
+	int int1;
+	Integer int2;
+	long long1;
+	Long long2;
+	float float1;
+	Float float2;
+	double double1;
+	Double double2;
+	BigInteger biginteger;
+	BigDecimal bigDecimal;
+	boolean boolean1;
+	Boolean boolean2;
+	char char1;
+	Character char2;
+	String string;
+	Date date;
+	List coisas;
+	Set coisas2;
+	String[] strings1;
+	Set&lt;String&gt; strings2;
+	List&lt;String&gt; strings3;
+	Map&lt;String, String&gt; map1;
+}
+public void test(){
+	Foo thing = new Foo();
+	//if you select the variable &apos;thing&apos; and press Ctrl+Shift+7 these lines will appear
+	
+thing.setByte1(Byte.valueOf(1 + &quot;&quot;));
+thing.setByte2(Byte.valueOf(1 + &quot;&quot;));
+thing.setShort1(Short.valueOf(1 + &quot;&quot;));
+thing.setShort2(Short.valueOf(1 + &quot;&quot;));
+thing.setInt1(Integer.valueOf(1 + &quot;&quot;));
+thing.setInt2(Integer.valueOf(1 + &quot;&quot;));
+thing.setLong1(Long.valueOf(1 + &quot;&quot;));
+thing.setLong2(Long.valueOf(1 + &quot;&quot;));
+thing.setFloat1(Float.valueOf(1 + &quot;&quot;));
+thing.setFloat2(Float.valueOf(1 + &quot;&quot;));
+thing.setDouble1(Double.valueOf(1 + &quot;&quot;));
+thing.setDouble2(Double.valueOf(1 + &quot;&quot;));
+thing.setBiginteger(new BigInteger(1 + &quot;&quot;));
+thing.setBigDecimal(new BigDecimal(1 + &quot;&quot;));
+thing.setBoolean1(true);
+thing.setBoolean2(true);
+thing.setChar1(&apos;1&apos;);
+thing.setChar2(&apos;1&apos;);
+thing.setString(&quot;1&quot;);
+thing.setDate(new Date());
+thing.setCoisas(List.of(1));
+thing.setCoisas2(Set.of(1));
+thing.setStrings1(new String[]{&quot;1&quot;});
+thing.setStrings2(Set.of(&quot;1&quot;));
+thing.setStrings3(List.of(&quot;1&quot;));
+thing.setMap1(Map.of(&quot;1&quot;,&quot;1&quot;));
+
+	
+}
    </description>
 
    <copyright url="http://www.example.com/copyright">
@@ -14,14 +76,14 @@ You just need to select a variable and press ctrl + 7.
    </copyright>
 
    <license url="http://www.example.com/license">
-     MIT
+      MIT
    </license>
 
    <plugin
          id="SetProperties"
          download-size="0"
          install-size="0"
-         version="0.0.0"
+         version="1.2.0"
          unpack="false"/>
 
 </feature>
