@@ -65,7 +65,7 @@ public class SampleHandler extends AbstractHandler {
 				ICompilationUnit iCompilationUnit = (ICompilationUnit) element;
 				iCompilationUnit.becomeWorkingCopy(null);
 				ITextSelection iTextSelection = (ITextSelection) iTextEditor.getSelectionProvider().getSelection();
-				ASTParser parser = ASTParser.newParser(AST.JLS19);
+				ASTParser parser = ASTParser.newParser(AST.getJLSLatest());
 				parser.setResolveBindings(true);
 				parser.setBindingsRecovery(true);
 				parser.setKind(ASTParser.K_COMPILATION_UNIT);
