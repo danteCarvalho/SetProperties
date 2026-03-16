@@ -2,7 +2,7 @@
 <feature
       id="SetPropertiesFeature"
       label="SetPropertiesFeature"
-      version="1.2.0">
+      version="1.3.0">
 
    <description url="http://www.example.com/description">
       This plugin can set all the properties of a class for you. 
@@ -83,7 +83,7 @@ thing.setMap1(Map.of(&quot;1&quot;,&quot;1&quot;));
          id="SetProperties"
          download-size="0"
          install-size="0"
-         version="1.2.0"
+         version="1.3.0"
          unpack="false"/>
 
 </feature>

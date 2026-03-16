@@ -1,6 +1,7 @@
 package setproperties.handlers;
 import java.lang.reflect.Field;
 import java.lang.reflect.GenericArrayType;
+import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.net.MalformedURLException;
@@ -23,17 +24,23 @@ import org.eclipse.core.runtime.Path;
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IJavaProject;
+import org.eclipse.jdt.core.IMethod;
 import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.JavaCore;
+import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.dom.AST;
 import org.eclipse.jdt.core.dom.ASTNode;
 import org.eclipse.jdt.core.dom.ASTParser;
 import org.eclipse.jdt.core.dom.CompilationUnit;
 import org.eclipse.jdt.core.dom.Expression;
+import org.eclipse.jdt.core.dom.IMethodBinding;
 import org.eclipse.jdt.core.dom.ITypeBinding;
+import org.eclipse.jdt.core.dom.MethodInvocation;
 import org.eclipse.jdt.core.dom.NodeFinder;
+import org.eclipse.jdt.core.dom.Statement;
 import org.eclipse.jdt.launching.JavaRuntime;
 import org.eclipse.jdt.ui.JavaUI;
+import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.ITextSelection;
@@ -73,26 +80,120 @@ public class SampleHandler extends AbstractHandler {
 				parser.setCompilerOptions(options);
 				parser.setSource(iCompilationUnit);
 				CompilationUnit compilationUnit = (CompilationUnit) parser.createAST(null);
-				NodeFinder finder = new NodeFinder(compilationUnit, iTextSelection.getOffset(), 0);
+				// Use selection length so finder points to the selected name (method or variable)
+				NodeFinder finder = new NodeFinder(compilationUnit, iTextSelection.getOffset(), iTextSelection.getLength());
 				ASTNode astNode = finder.getCoveringNode();
-				Expression expression = (Expression) astNode;
-				ITypeBinding iTypeBinding = expression.resolveTypeBinding();
-				IType iType = javaProject.findType(iTypeBinding.getQualifiedName());
-				Class<?> clazz = classLoader.loadClass(iType.getFullyQualifiedName());
-				Field[] fields = clazz.getDeclaredFields();
-				StringBuilder textos = new StringBuilder();
-				for (Field field : fields) {
-					String novaLinha = iTextSelection.getText() + ".set" + StringUtils.capitalize(field.getName()) + "(" + texto(field) + ");\n";
-					textos.append(novaLinha);
+				// Try to find a MethodInvocation in or above the selected node
+				ASTNode n = astNode;
+				MethodInvocation methodInvocation = null;
+				while (n != null) {
+					if (n instanceof MethodInvocation) {
+						methodInvocation = (MethodInvocation) n;
+						break;
+					}
+					n = n.getParent();
 				}
-				int line = document.getLineOfOffset(iTextSelection.getOffset());
-				IRegion proximaLinha = document.getLineInformation(line + 1);
-				document.replace(proximaLinha.getOffset(), 0, textos.toString());
+				if (methodInvocation != null) {
+					return setVariables(document, classLoader, methodInvocation);
+				}
+				// fallback: original behavior (selected expression -> setX() for fields)
+				setProperties(document, javaProject, classLoader, iTextSelection, astNode);
 			}
 		}
 		catch (Exception e) {
 			System.out.println(e.getMessage());
 		}
+		return null;
+	}
+
+	private void setProperties(IDocument document, IJavaProject javaProject, URLClassLoader classLoader, ITextSelection iTextSelection, ASTNode astNode) throws JavaModelException, ClassNotFoundException, BadLocationException {
+		Expression expression = (Expression) astNode;
+		ITypeBinding iTypeBinding = expression.resolveTypeBinding();
+		IType iType = javaProject.findType(iTypeBinding.getQualifiedName());
+		Class<?> clazz = classLoader.loadClass(iType.getFullyQualifiedName());
+		Field[] fields = clazz.getDeclaredFields();
+		StringBuilder textos = new StringBuilder();
+		for (Field field : fields) {
+			String novaLinha = iTextSelection.getText() + ".set" + StringUtils.capitalize(field.getName()) + "(" + texto(field) + ");\n";
+			textos.append(novaLinha);
+		}
+		int line = document.getLineOfOffset(iTextSelection.getOffset());
+		IRegion proximaLinha = document.getLineInformation(line + 1);
+		document.replace(proximaLinha.getOffset(), 0, textos.toString());
+	}
+
+	private Object setVariables(IDocument document, URLClassLoader classLoader, MethodInvocation methodInvocation) throws ClassNotFoundException, BadLocationException {
+		// Handle method invocation: create parameter variables and replace args with variables
+		IMethodBinding methodBinding = methodInvocation.resolveMethodBinding();
+		ITypeBinding[] paramTypes = methodBinding.getParameterTypes();
+		String[] paramNames = methodBinding.getParameterNames();
+		IJavaElement javaElem = methodBinding.getJavaElement();
+		Method reflectMethod = null;
+		IMethod iMethodElem = (IMethod) javaElem;
+		// Try to obtain a java.lang.reflect.Method from the IMethod using the project classloader
+		IType declaring = (IType) iMethodElem.getParent();
+		String declaringName = declaring.getFullyQualifiedName('.');
+		Class<?> declaringClass = classLoader.loadClass(declaringName);
+		// Build parameter Class[] from ITypeBinding and try to get the exact reflective Method
+		for (Method m : declaringClass.getDeclaredMethods()) {
+			if (m.getName().equals(iMethodElem.getElementName()) && m.getParameterCount() == paramTypes.length) {
+				reflectMethod = m;
+				break;
+			}
+		}
+		if (reflectMethod == null) {
+			for (Method m : declaringClass.getMethods()) {
+				if (m.getName().equals(iMethodElem.getElementName()) && m.getParameterCount() == paramTypes.length) {
+					reflectMethod = m;
+					break;
+				}
+			}
+		}
+		// Build declarations and argument replacement
+		StringBuilder declarations = new StringBuilder();
+		StringBuilder argsList = new StringBuilder();
+		Class<?>[] rawTypes = null;
+		Type[] reflectGenericTypes = null;
+		reflectGenericTypes = reflectMethod.getGenericParameterTypes();
+		rawTypes = reflectMethod.getParameterTypes();
+		for (int i = 0; i < paramTypes.length; i++) {
+			ITypeBinding tb = paramTypes[i];
+			String paramName = paramNames[i];
+			Type paramReflectType = reflectGenericTypes[i];
+			Class<?> rawClass = rawTypes[i];
+			String initializer = texto(rawClass, paramReflectType);
+			String typeDeclaration = tb.getName();
+			declarations.append(typeDeclaration).append(" ").append(paramName).append(" = ").append(initializer).append(";\n");
+			if (i > 0)
+				argsList.append(", ");
+			argsList.append(paramName);
+		}
+		// Prepare invocation text and result handling
+		// Determine the enclosing Statement early so we can build the full-statement replacement
+		ASTNode parent = methodInvocation;
+		while (parent != null && !(parent instanceof Statement)) {
+			parent = parent.getParent();
+		}
+		String qualifier = "";
+		if (methodInvocation.getExpression() != null) {
+			qualifier = methodInvocation.getExpression().toString() + ".";
+		}
+		// Build the invocation replacement (methodName(arg1, arg2...))
+		String invocationReplacement = qualifier + methodInvocation.getName().getIdentifier() + "(" + argsList.toString() + ")";
+		// Try to build callText as the whole enclosing statement text with the invocation replaced
+		String callText = invocationReplacement;
+		String stmtText = document.get(parent.getStartPosition(), parent.getLength());
+		int relInvOffset = methodInvocation.getStartPosition() - parent.getStartPosition();
+		int relInvLen = methodInvocation.getLength();
+		if (relInvOffset >= 0 && relInvOffset + relInvLen <= stmtText.length()) {
+			String before = stmtText.substring(0, relInvOffset);
+			String after = stmtText.substring(relInvOffset + relInvLen);
+			callText = before + invocationReplacement + after;
+		}
+		// Replace the entire enclosing statement with declarations + the modified statement in one atomic edit
+		String declarationsIndented = declarations.toString();
+		String replacement = declarationsIndented + callText + "\n";
+		document.replace(parent.getStartPosition(), parent.getLength(), replacement);
 		return null;
 	}
 
@@ -210,5 +311,6 @@ public class SampleHandler extends AbstractHandler {
 	private static boolean isNumber(Class<?> type) {
 		return type == byte.class || type == short.class || type == int.class || type == long.class || type == float.class || type == double.class;
 	}
+
 
 }

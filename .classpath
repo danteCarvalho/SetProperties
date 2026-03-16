@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry kind="src" path="SetProperties/src"/>
+	<classpathentry kind="lib" path="SetPropertiesFeature/artifacts.jar"/>
+	<classpathentry kind="lib" path="SetPropertiesFeature/content.jar"/>
+	<classpathentry kind="lib" path="SetPropertiesFeature/features/SetPropertiesFeature_1.2.0.jar"/>
+	<classpathentry kind="lib" path="SetPropertiesFeature/plugins/SetProperties_1.2.0.jar"/>
+	<classpathentry kind="lib" path="SetPropertiesUpdateSite/artifacts.jar"/>
+	<classpathentry kind="lib" path="SetPropertiesUpdateSite/content.jar"/>
+	<classpathentry kind="lib" path="SetPropertiesUpdateSite/features/SetPropertiesFeature_1.2.0.jar"/>
+	<classpathentry kind="lib" path="SetPropertiesUpdateSite/plugins/SetProperties_1.2.0.jar"/>
+	<classpathentry kind="output" path="bin"/>
+</classpath>
